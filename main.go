@@ -4,9 +4,21 @@ import (
 	"GoMkvRn/data_access"
 	"GoMkvRn/models"
 	"GoMkvRn/service"
+	page "GoMkvRn/ui"
+	"GoMkvRn/ui/menu"
+	"GoMkvRn/ui/splitfileviewer"
 	"errors"
+	"flag"
 	"fmt"
+	"gioui.org/app"
+	"gioui.org/font/gofont"
+	"gioui.org/io/system"
+	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/text"
+	"gioui.org/widget/material"
 	"github.com/flytam/filenamify"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,8 +28,47 @@ import (
 
 // TODO: Add DI
 func main() {
+	injectPathPtr := flag.String("path", "", "Path to mkv folder")
+	if injectPathPtr == nil || *injectPathPtr == "" {
+		startApp()
+	}
+	//replace with path
 	path := "B:\\Documents\\Movies\\BluRay\\FOOD_WARS\\Food_Wars_Season_3_pt3\\"
 	RenameBulkCmd(path)
+}
+
+func startApp() {
+	go func() {
+		w := app.NewWindow()
+		err := run(w)
+		if err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}()
+	app.Main()
+}
+
+func run(w *app.Window) error {
+	th := material.NewTheme()
+	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	var ops op.Ops
+
+	router := page.NewRouter()
+	router.Register(1, splitfileviewer.New(&router))
+	router.Register(3, menu.New(&router))
+
+	for {
+		switch e := w.NextEvent().(type) {
+		case system.DestroyEvent:
+			return e.Err
+		case system.FrameEvent:
+			gtx := layout.NewContext(&ops, e)
+			router.Layout(gtx, th)
+			e.Frame(gtx.Ops)
+		}
+	}
+
 }
 
 func RenameBulkCmd(startPath string) {
