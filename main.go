@@ -14,7 +14,6 @@ import (
 	"strings"
 )
 
-// TODO: Add DI
 func main() {
 	path := "B:\\Documents\\Movies\\BluRay\\FOOD_WARS\\Food_Wars_Season_3_pt3\\"
 	RenameBulkCmd(path)
